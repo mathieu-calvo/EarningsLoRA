@@ -131,7 +131,7 @@ docs/                         Architecture, training, evaluation, deployment, wh
 |---|---|---|
 | 1 | Scaffold + ECTSum loader + chat-template formatter + length-distribution EDA (notebook 01) | Done |
 | 2 | Zero-shot baselines: ROUGE + numeric-recall + judge + harness + notebook 02 (frontier code-complete; numbers populate on first run with `GOOGLE_API_KEY`) | Done |
-| 3 | QLoRA SFT on Kaggle T4 (notebook 03 + `scripts/train.py`) | Pending |
+| 3 | QLoRA SFT on Kaggle T4 (notebook 03 + `scripts/train.py`) | Code-complete (run on Kaggle/Colab to produce the adapter) |
 | 4 | Bench orchestration — `scripts/evaluate.py` + `reports/bench.json` regenerator | Pending |
 | 5 | HF Hub publish + HF Space demo + Streamlit Cloud fallback + README polish | Pending |
 
