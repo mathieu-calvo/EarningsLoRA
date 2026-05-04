@@ -129,10 +129,10 @@ docs/                         Architecture, training, evaluation, deployment, wh
 
 | # | Milestone | Status |
 |---|---|---|
-| 1 | Scaffold + ECTSum loader + chat-template formatter + length-distribution EDA (notebook 01) | Done — skeleton |
-| 2 | Zero-shot baselines: base Llama 3.2 3B + Gemini Flash on the 50-row hold-out (notebook 02) | Pending |
+| 1 | Scaffold + ECTSum loader + chat-template formatter + length-distribution EDA (notebook 01) | Done |
+| 2 | Zero-shot baselines: ROUGE + numeric-recall + judge + harness + notebook 02 (frontier code-complete; numbers populate on first run with `GOOGLE_API_KEY`) | Done |
 | 3 | QLoRA SFT on Kaggle T4 (notebook 03 + `scripts/train.py`) | Pending |
-| 4 | Eval harness — ROUGE + numeric-recall + LLM-judge + frontier (notebook 05 + `scripts/evaluate.py`) | Pending |
+| 4 | Bench orchestration — `scripts/evaluate.py` + `reports/bench.json` regenerator | Pending |
 | 5 | HF Hub publish + HF Space demo + Streamlit Cloud fallback + README polish | Pending |
 
 ---
