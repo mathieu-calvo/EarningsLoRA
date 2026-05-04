@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Env / secrets
+.env
+.env.local
+*.pem
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Data + model artefacts (kept out of git; live on HF Hub)
+checkpoints/
+adapters/
+runs/
+wandb/
+data/raw/
+data/processed/
+*.bin
+*.safetensors
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

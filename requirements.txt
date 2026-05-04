@@ -1,0 +1,18 @@
+# Pinned runtime requirements for reproducibility (e.g. on Streamlit Cloud / HF Spaces).
+# For development install, use `pip install -e ".[dev,train,eval,app]"`.
+
+datasets>=2.19
+pydantic>=2.6
+pydantic-settings>=2.2
+python-dotenv>=1.0
+numpy>=1.26
+pandas>=2.1
+tqdm>=4.66
+
+# Eval
+rouge-score>=0.1.2
+google-generativeai>=0.7
+
+# App
+streamlit>=1.36
+huggingface-hub>=0.23

@@ -1,0 +1,6 @@
+gradio>=4.44
+spaces>=0.28
+torch>=2.3
+transformers>=4.44
+peft>=0.12
+huggingface-hub>=0.23
