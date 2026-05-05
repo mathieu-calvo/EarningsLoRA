@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     # HF Hub
     adapter_repo: str = "mathieu-calvo/llama-3.2-3b-earningslora"
     dataset_repo: str = "mathieu-calvo/ectsum-chat"
+    space_repo: str = "mathieu-calvo/EarningsLoRA"
     upstream_dataset: str = "mrm8488/ectsum"
 
     # Training shape
@@ -44,6 +45,19 @@ class Settings(BaseSettings):
     # Eval
     eval_holdout_size: int = 50
     eval_seed: int = 42
+    eval_dir: Path = Field(default_factory=lambda: Path("runs/eval"))
+    bench_path: Path = Field(default_factory=lambda: Path("reports/bench.json"))
+    holdout_manifest: Path = Field(default_factory=lambda: Path("data/eval/holdout.json"))
+
+    # Pricing labels for the headline cost column (USD per 1M tokens). Static
+    # because frontier list price is the relevant signal — the AI Studio free
+    # tier is always $0 to us, but the fair comparison is at-scale list price.
+    base_cost_per_1m_input: float = 0.0
+    base_cost_per_1m_output: float = 0.0
+    ft_cost_per_1m_input: float = 0.0
+    ft_cost_per_1m_output: float = 0.0
+    frontier_cost_per_1m_input: float = 0.075
+    frontier_cost_per_1m_output: float = 0.30
 
     # Cache
     cache_dir: Path = Field(default_factory=lambda: Path.home() / ".earningslora")

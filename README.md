@@ -4,7 +4,7 @@
 
 A portfolio project that closes the inference-only gap most LLM portfolios have: an honest QLoRA fine-tuning pipeline (TRL + PEFT + bitsandbytes), an eval harness with a finance-specific factuality metric, and a head-to-head benchmark against zero-shot Gemini 2.5 Flash. Compute, hosting, datasets, and demo all run on free tiers.
 
-> **Status:** 🚧 Skeleton in place. Roadmap below.
+> **Status:** Code complete end-to-end (data → training → bench → publish → demo). Eval numbers populate after the first Kaggle/Colab T4 training run.
 
 ---
 
@@ -23,13 +23,15 @@ See [`docs/why-fine-tune.md`](docs/why-fine-tune.md) for the full case.
 
 ## Headline eval table
 
-_To be populated once Weekend 4 is complete. Anchored on the same frozen 50-transcript hold-out for all three configurations._
+_Anchored on the same frozen 50-transcript hold-out for all three configurations. Regenerated end-to-end from `reports/bench.json` by `scripts/evaluate.py` — never hand-edit between the markers below._
 
-| Configuration | ROUGE-L | Numeric recall | LLM-judge win-rate | $ / 1M tok | ms / req (T4) |
+<!-- BENCH:HEADLINE:BEGIN -->
+| Configuration | ROUGE-L | Numeric recall | LLM-judge win-rate vs base | $ / 1M tok | ms / req (p50) |
 |---|---|---|---|---|---|
-| Llama 3.2 3B (zero-shot) | TBD | TBD | TBD | $0 | TBD |
-| **+ QLoRA (this repo)** | **TBD** | **TBD** | **TBD** | **$0** | **TBD** |
-| Gemini 2.5 Flash (zero-shot) | TBD | TBD | TBD | $0.075 | TBD |
+| Llama 3.2 3B Instruct (zero-shot) | _pending first run_ | _pending_ | — | $0 | _pending_ |
+| **+ QLoRA (this repo)** | **_pending_** | **_pending_** | **_pending_** | **$0** | **_pending_** |
+| Gemini 2.5 Flash (zero-shot) | _pending_ | _pending_ | _pending_ | $0.075 / $0.3 | _pending_ |
+<!-- BENCH:HEADLINE:END -->
 
 The story this table will tell: small fine-tuned model approaches frontier quality at zero marginal cost.
 
@@ -86,21 +88,32 @@ The story this table will tell: small fine-tuned model approaches frontier quali
 
 ---
 
-## Quickstart (skeleton — full quickstart lands at the end of Weekend 1)
+## Quickstart
 
 ```bash
 git clone https://github.com/mathieu-calvo/EarningsLoRA.git
 cd EarningsLoRA
-python -m venv .venv && source .venv/Scripts/activate   # Windows
-pip install -e ".[dev,eval]"
+python -m venv .venv && .venv\Scripts\activate     # Windows
+# source .venv/bin/activate                        # macOS / Linux
+pip install -e ".[dev,eval,app]"
 
 cp .env.example .env  # optional — only needed for eval / publish
 
 pytest -m "not slow"
-ruff check src tests
+ruff check src tests scripts app
 ```
 
-For the training path, you'll additionally want `pip install -e ".[train]"` on a GPU host (Kaggle / Colab T4).
+CPU-only path (everything except training) works on Windows out of the box.
+For the training path, additionally `pip install -e ".[train]"` on a GPU host
+(Kaggle / Colab T4); `bitsandbytes` is GPU-only and skipped on Windows.
+
+```bash
+# Build the chat-formatted dataset + frozen 50-row hold-out
+python scripts/prepare_dataset.py
+
+# Pre-training bench (base + frontier; FT auto-skips with no adapter yet)
+python scripts/evaluate.py --configs base,frontier
+```
 
 ---
 
@@ -111,12 +124,13 @@ src/earningslora/
 ├── config.py                 pydantic-settings (EARNINGSLORA_* env vars)
 ├── data/                     ECTSum loader, chat-template formatter, chunking, EDA stats
 ├── training/                 LoRA config, SFTTrainer wrapper, callbacks
-├── inference/                Load base+adapter, generate, merge+push
+├── inference/                Load base+adapter, generate, merge for Space
 ├── evaluation/               ROUGE, numeric-recall, LLM-as-judge, frontier baseline, bench orchestrator
-└── utils/                    Hub uploaders, prompts
-notebooks/                    6 educational walkthroughs (01 → 06)
+├── demo/                     Framework-agnostic helpers shared by Streamlit + Gradio
+└── utils/                    Hub uploaders, prompts, SQLite cache
+notebooks/                    Educational walkthroughs (01 → 03)
 scripts/                      prepare_dataset / train / evaluate / publish CLIs
-app/                          Streamlit + HF Space demo
+app/                          Streamlit + HF Space launchers (import from earningslora.demo)
 tests/                        pytest unit + integration (CPU-only)
 data/eval/                    Frozen 50-row hold-out (pointers, not raw)
 reports/                      bench.json + side-by-side examples
@@ -130,10 +144,19 @@ docs/                         Architecture, training, evaluation, deployment, wh
 | # | Milestone | Status |
 |---|---|---|
 | 1 | Scaffold + ECTSum loader + chat-template formatter + length-distribution EDA (notebook 01) | Done |
-| 2 | Zero-shot baselines: ROUGE + numeric-recall + judge + harness + notebook 02 (frontier code-complete; numbers populate on first run with `GOOGLE_API_KEY`) | Done |
-| 3 | QLoRA SFT on Kaggle T4 (notebook 03 + `scripts/train.py`) | Code-complete (run on Kaggle/Colab to produce the adapter) |
-| 4 | Bench orchestration — `scripts/evaluate.py` + `reports/bench.json` regenerator | Pending |
-| 5 | HF Hub publish + HF Space demo + Streamlit Cloud fallback + README polish | Pending |
+| 2 | Zero-shot baselines: ROUGE + numeric-recall + judge + harness + notebook 02 | Done |
+| 3 | QLoRA SFT on Kaggle T4 (notebook 03 + `scripts/train.py`) | Code-complete — runs on Kaggle/Colab to produce the adapter |
+| 4 | Bench orchestration — `scripts/evaluate.py` + `reports/bench.json` regenerator + README headline-table sync | Done |
+| 5 | HF Hub publish (`scripts/publish.py`) + HF Space (Gradio + ZeroGPU) + Streamlit Cloud fallback | Done |
+| 6 | Training run on Kaggle T4 → bench numbers → adapter + Space go live | Pending — single training session away |
+
+**End-to-end loop after training:**
+
+```bash
+python scripts/train.py                    # produces runs/latest/adapter/
+python scripts/evaluate.py --adapter-dir runs/latest/adapter   # writes reports/bench.json + updates this README
+python scripts/publish.py --all --adapter-dir runs/latest/adapter   # adapter + dataset + Space to the Hub
+```
 
 ---
 

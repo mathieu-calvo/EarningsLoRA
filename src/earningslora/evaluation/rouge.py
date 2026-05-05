@@ -25,7 +25,7 @@ def rouge_scores(predictions: list[str], references: list[str]) -> dict[str, flo
 
     scorer = rouge_scorer.RougeScorer(["rouge1", "rouge2", "rougeL"], use_stemmer=True)
     r1, r2, rl = [], [], []
-    for pred, ref in zip(predictions, references):
+    for pred, ref in zip(predictions, references, strict=True):
         scores = scorer.score(ref, pred)
         r1.append(scores["rouge1"].fmeasure)
         r2.append(scores["rouge2"].fmeasure)

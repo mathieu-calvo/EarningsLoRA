@@ -1,7 +1,5 @@
 # Training — Kaggle / Colab how-to
 
-> Skeleton — fills in during Weekend 3.
-
 ## Hyperparameters (default)
 
 | Parameter | Value | Notes |
@@ -17,6 +15,9 @@
 | Epochs | 2 | Small adapter + ~2k examples. |
 | Gradient checkpointing | on | Required for VRAM headroom. |
 
+All defaults live in `Settings` (`src/earningslora/config.py`); CLI flags on
+`scripts/train.py` override per-run.
+
 ## Expected wall-clock
 
 - Kaggle T4 16 GB: ~90-120 min for 2 epochs over ~2k examples.
@@ -28,7 +29,7 @@
 2. `git clone https://github.com/mathieu-calvo/EarningsLoRA.git`
 3. `pip install -e ".[train,eval]"`
 4. Set `WANDB_API_KEY` and `HF_TOKEN` as Kaggle secrets; expose as env vars.
-5. Run `notebooks/03_qlora_training.ipynb`.
+5. Run `notebooks/03_qlora_training.ipynb` (or `python scripts/prepare_dataset.py && python scripts/train.py`).
 
 ## Colab path
 
@@ -41,3 +42,25 @@
 
 `SFTTrainer` saves every `eval_steps` to `runs/<timestamp>/checkpoint-*`.
 Resume is supported; W&B run id is preserved across resumes.
+
+## After training
+
+Once the run finishes and `runs/latest/adapter/` exists, the rest of the
+pipeline runs locally on CPU (no GPU needed, since the harness uses cached
+predictions and the judge calls Gemini):
+
+```bash
+python scripts/evaluate.py --adapter-dir runs/latest/adapter   # writes reports/bench.json + updates README
+python scripts/publish.py --all --adapter-dir runs/latest/adapter   # adapter + dataset + Space to the Hub
+```
+
+For the Space's merged-bf16 model upload, run the merge inside the same GPU
+session (it needs to load the bf16 base):
+
+```python
+from earningslora.inference.merge import merge_and_save
+merge_and_save("meta-llama/Llama-3.2-3B-Instruct", "runs/latest/adapter", "runs/latest/merged")
+```
+
+then push the merged dir as a separate model repo (or replace the adapter repo
+contents with the merged weights).
