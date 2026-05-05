@@ -90,6 +90,8 @@ The story this table will tell: small fine-tuned model approaches frontier quali
 
 ## Quickstart
 
+> **First time? Read [`docs/setup.md`](docs/setup.md) — step-by-step walkthrough for every account and key (HuggingFace + Llama 3.2 access, Google AI Studio, W&B, Kaggle GPU + secrets) plus the first training run.**
+
 ```bash
 git clone https://github.com/mathieu-calvo/EarningsLoRA.git
 cd EarningsLoRA

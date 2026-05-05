@@ -1,5 +1,9 @@
 # Training — Kaggle / Colab how-to
 
+> First time setting up accounts + keys + the Kaggle environment? Follow
+> [`docs/setup.md`](setup.md) end-to-end. This page is the reference for the
+> training recipe itself.
+
 ## Hyperparameters (default)
 
 | Parameter | Value | Notes |
