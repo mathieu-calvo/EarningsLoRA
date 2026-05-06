@@ -67,6 +67,8 @@ def train(
     `None` arguments fall back to `Settings` defaults so notebooks and the CLI
     stay declarative.
     """
+    import inspect
+
     from datasets import load_from_disk
     from peft import get_peft_model
     from trl import SFTConfig, SFTTrainer
@@ -110,7 +112,7 @@ def train(
         model.print_trainable_parameters()
 
     has_validation = "validation" in dataset
-    sft_config = SFTConfig(
+    sft_kwargs = dict(
         output_dir=str(output_dir),
         num_train_epochs=num_train_epochs,
         per_device_train_batch_size=per_device_batch_size,
@@ -121,7 +123,6 @@ def train(
         learning_rate=learning_rate,
         lr_scheduler_type="cosine",
         warmup_ratio=0.03,
-        max_seq_length=max_seq_len,
         logging_steps=10,
         save_strategy="epoch",
         eval_strategy="epoch" if has_validation else "no",
@@ -130,13 +131,23 @@ def train(
         seed=42,
         packing=False,
     )
+    # TRL ≥0.16 renamed `max_seq_length` to `max_length`; pick whichever this version exposes.
+    sft_params = inspect.signature(SFTConfig.__init__).parameters
+    if "max_length" in sft_params:
+        sft_kwargs["max_length"] = max_seq_len
+    elif "max_seq_length" in sft_params:
+        sft_kwargs["max_seq_length"] = max_seq_len
+    sft_config = SFTConfig(**sft_kwargs)
 
+    # TRL ≥0.16 renamed `tokenizer` to `processing_class` on SFTTrainer.
+    trainer_params = inspect.signature(SFTTrainer.__init__).parameters
+    tok_kw = "processing_class" if "processing_class" in trainer_params else "tokenizer"
     trainer = SFTTrainer(
         model=model,
         args=sft_config,
         train_dataset=dataset["train"],
         eval_dataset=dataset.get("validation") if has_validation else None,
-        tokenizer=tokenizer,
+        **{tok_kw: tokenizer},
     )
 
     logger.info("Starting training")
